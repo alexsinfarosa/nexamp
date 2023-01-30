@@ -1,9 +1,16 @@
-import type {LoaderArgs} from '@remix-run/node'
+import type {LoaderArgs, MetaFunction} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import {useCatch, useLoaderData} from '@remix-run/react'
 import invariant from 'tiny-invariant'
 import {getStationList} from '~/models/station.server'
 import {stringToSlug} from '~/utils'
+
+export const meta: MetaFunction = () => {
+  return {
+    title: 'Station Page',
+    description: 'Details about a station',
+  }
+}
 
 export async function loader({params}: LoaderArgs) {
   invariant(params.stationId, 'stationId not found')
@@ -24,7 +31,7 @@ export default function Station() {
   const {station} = useLoaderData<typeof loader>()
 
   return (
-    <div>
+    <>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
         <h1 className="text-2xl font-semibold text-gray-900">{station.name}</h1>
       </div>
@@ -35,13 +42,17 @@ export default function Station() {
         </div>
         {/* /End replace */}
       </div>
-    </div>
+    </>
   )
 }
 
 export function ErrorBoundary({error}: {error: Error}) {
   console.error(error)
-  return <div>An unexpected error occurred: {error.message}</div>
+  return (
+    <div className="px-4 sm:px-6 md:px-8">
+      An unexpected error occurred: {error.message}
+    </div>
+  )
 }
 
 export function CatchBoundary() {

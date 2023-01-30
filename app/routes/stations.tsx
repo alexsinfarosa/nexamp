@@ -1,26 +1,30 @@
 import {Dialog, Transition} from '@headlessui/react'
 import {Bars3Icon, XMarkIcon} from '@heroicons/react/24/outline'
+import type {MetaFunction} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import {NavLink, Outlet, useLoaderData} from '@remix-run/react'
 import {Fragment, useState} from 'react'
 import {getStationList} from '~/models/station.server'
-import {stringToSlug} from '~/utils'
+import {stringToSlug, groupBy} from '~/utils'
+import StationListbox from '~/components/StationListbox'
 
 export const meta: MetaFunction = () => {
   return {
-    title: 'Project Page',
-    description: 'Project Page',
+    title: 'Station List Page',
+    description: 'A list of stations',
   }
 }
 
 export async function loader() {
   const stations = await getStationList()
-  return json(stations.slice(0, 20))
+  return json(stations.slice(0, 50))
 }
 
 export default function Main() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const stations = useLoaderData<typeof loader>()
+  const [filterBy, setFilterBy] = useState('state')
+  const filteredStations = groupBy(stations, [filterBy])
 
   return (
     <div>
@@ -85,6 +89,61 @@ export default function Main() {
                     />
                   </div>
                   <nav className="mt-5 space-y-1 px-2">
+                    {Object.entries(filteredStations).map(
+                      ([state, stations]) => {
+                        return (
+                          <div key={state} className="mt-12 lg:mt-8">
+                            <h5 className="mb-8 font-semibold text-slate-900 lg:mb-3">
+                              {state}
+                            </h5>
+                            <ul className="space-y-4 border-l border-slate-100 dark:border-slate-800 lg:space-y-2">
+                              {stations.map(station => (
+                                <li key={station.id}>
+                                  <NavLink
+                                    className={({isActive}) =>
+                                      `-ml-px block border-l border-transparent pl-4  ${
+                                        isActive
+                                          ? '-ml-px block border-l border-current pl-4 font-semibold text-blue-500'
+                                          : 'text-slate-700 hover:border-slate-400 hover:text-slate-900'
+                                      }`
+                                    }
+                                    to={stringToSlug(station.id)}
+                                  >
+                                    {station.name}
+                                  </NavLink>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )
+                      },
+                    )}
+                  </nav>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+            <div className="w-14 flex-shrink-0">
+              {/* Force sidebar to shrink to fit close icon */}
+            </div>
+          </div>
+        </Dialog>
+      </Transition.Root>
+
+      {/* Static sidebar for desktop */}
+      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-96 md:flex-col">
+        {/* Sidebar component, swap this element with another sidebar if you like */}
+        <div className="border-r border-gray-200 px-4 pt-6">
+          <StationListbox setFilterBy={setFilterBy}></StationListbox>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+          <div className="flex flex-1 flex-col overflow-y-auto px-4">
+            <nav className="mt-5 flex-1 space-y-1 bg-white">
+              {Object.entries(filteredStations).map(([state, stations]) => {
+                return (
+                  <div key={state} className="mt-12 lg:mt-8">
+                    <h5 className="mb-8 font-semibold text-slate-900 lg:mb-3">
+                      {state}
+                    </h5>
                     <ul className="space-y-4 border-l border-slate-100 dark:border-slate-800 lg:space-y-2">
                       {stations.map(station => (
                         <li key={station.id}>
@@ -103,51 +162,9 @@ export default function Main() {
                         </li>
                       ))}
                     </ul>
-                  </nav>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-            <div className="w-14 flex-shrink-0">
-              {/* Force sidebar to shrink to fit close icon */}
-            </div>
-          </div>
-        </Dialog>
-      </Transition.Root>
-
-      {/* Static sidebar for desktop */}
-      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-96 md:flex-col">
-        {/* Sidebar component, swap this element with another sidebar if you like */}
-        <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
-          <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
-            <div className="flex flex-shrink-0 items-center px-4">
-              <img
-                className="h-8 w-auto"
-                src="https://tailwindui.com/img/logos/mark.svg?color=blue&shade=600"
-                alt="Your Company"
-              />
-            </div>
-            <div className="mt-5 bg-white px-2">
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-            </div>
-            <nav className="mt-5 flex-1 space-y-1 bg-white px-2">
-              <ul className="space-y-4 border-l border-slate-100 dark:border-slate-800 lg:space-y-2">
-                {stations.map(station => (
-                  <li key={station.id}>
-                    <NavLink
-                      className={({isActive}) =>
-                        `-ml-px block border-l border-transparent pl-4  ${
-                          isActive
-                            ? '-ml-px block border-l border-current pl-4 font-semibold text-blue-500'
-                            : 'text-slate-700 hover:border-slate-400 hover:text-slate-900'
-                        }`
-                      }
-                      to={stringToSlug(station.id)}
-                    >
-                      {station.name}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                )
+              })}
             </nav>
           </div>
         </div>
