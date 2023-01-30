@@ -1,26 +1,31 @@
 import {Fragment, useState} from 'react'
 import {Listbox, Transition} from '@headlessui/react'
 import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/20/solid'
+import type {Station} from '~/models/station.server'
 
-const filterStations = [
+type listboxOption = {
+  name: string
+  by: keyof Station
+}
+
+const filterStations: listboxOption[] = [
   {name: 'State', by: 'state'},
   {name: 'Start Year', by: 'startYear'},
 ]
 
-export default function StationListbox({setFilterBy}) {
+export default function StationListbox({onChange}) {
   const [selected, setSelected] = useState(filterStations[0])
 
-  function handleOnChange(value: {name: string; by: string}) {
+  function handleOnChange(value: typeof filterStations[0]) {
     setSelected(value)
-    setFilterBy(value.by)
+    onChange(value.by)
   }
 
   return (
     <Listbox value={selected} onChange={value => handleOnChange(value)}>
       <div className="relative mt-1">
-        {' '}
         <Listbox.Label className="mb-1 block text-sm font-medium text-gray-700">
-          Filter Stations By:
+          Filter Stations By
         </Listbox.Label>
         <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-300 sm:text-sm">
           <span className="block truncate">{selected.name}</span>

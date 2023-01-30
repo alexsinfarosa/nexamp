@@ -4,9 +4,10 @@ import type {MetaFunction} from '@remix-run/node'
 import {json} from '@remix-run/node'
 import {NavLink, Outlet, useLoaderData} from '@remix-run/react'
 import {Fragment, useState} from 'react'
-import {getStationList} from '~/models/station.server'
-import {stringToSlug, groupBy} from '~/utils'
 import StationListbox from '~/components/StationListbox'
+import type {Station} from '~/models/station.server'
+import {getStationList} from '~/models/station.server'
+import {groupBy, stringToSlug} from '~/utils'
 
 export const meta: MetaFunction = () => {
   return {
@@ -23,8 +24,8 @@ export async function loader() {
 export default function Main() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const stations = useLoaderData<typeof loader>()
-  const [filterBy, setFilterBy] = useState('state')
-  const filteredStations = groupBy(stations, [filterBy])
+  const [filterBy, setFilterBy] = useState<keyof Station>('state')
+  const filteredStations = groupBy<Station>(stations, [filterBy])
 
   return (
     <div>
@@ -133,7 +134,7 @@ export default function Main() {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-96 md:flex-col">
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="border-r border-gray-200 px-4 pt-6">
-          <StationListbox setFilterBy={setFilterBy}></StationListbox>
+          <StationListbox onChange={setFilterBy}></StationListbox>
         </div>
         <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
           <div className="flex flex-1 flex-col overflow-y-auto px-4">
